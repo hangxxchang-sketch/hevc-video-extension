@@ -1,0 +1,70 @@
+name: Build Windows HEVC Extension
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-x64:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install vcpkg
+        shell: pwsh
+        run: |
+          $env:VCPKG_ROOT = Join-Path $env:RUNNER_TEMP 'vcpkg'
+          git clone --depth 1 https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
+          & (Join-Path $env:VCPKG_ROOT 'bootstrap-vcpkg.bat')
+          "VCPKG_ROOT=$env:VCPKG_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Configure
+        shell: pwsh
+        run: |
+          cmake --preset windows-x64 `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows
+
+      - name: Build
+        run: cmake --build build\x64 --config Release
+
+      - name: Assemble download package
+        shell: pwsh
+        run: |
+          $package = Join-Path $env:RUNNER_TEMP 'HevcVideoExtension-windows-x64'
+          New-Item -ItemType Directory -Force -Path (Join-Path $package 'bin') | Out-Null
+          New-Item -ItemType Directory -Force -Path (Join-Path $package 'scripts') | Out-Null
+          Copy-Item 'build\x64\Release\HevcVideoExtension.dll' (Join-Path $package 'bin')
+          Copy-Item 'build\x64\Release\HevcMftProbe.exe' (Join-Path $package 'bin')
+          Copy-Item 'scripts\*.ps1' (Join-Path $package 'scripts')
+          Copy-Item 'README.md', 'LICENSE' $package
+
+          $ffmpegBin = Join-Path $PWD 'build\x64\vcpkg_installed\x64-windows\bin'
+          Get-ChildItem $ffmpegBin -Filter 'avcodec*.dll' | Copy-Item -Destination (Join-Path $package 'bin')
+          Get-ChildItem $ffmpegBin -Filter 'avutil*.dll' | Copy-Item -Destination (Join-Path $package 'bin')
+          Get-ChildItem $ffmpegBin -Filter 'swscale*.dll' | Copy-Item -Destination (Join-Path $package 'bin')
+
+          Compress-Archive -Path $package -DestinationPath (Join-Path $PWD 'HevcVideoExtension-windows-x64.zip') -Force
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HevcVideoExtension-windows-x64
+          path: HevcVideoExtension-windows-x64.zip
+          if-no-files-found: error
+
+      - name: Publish GitHub Release for tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HevcVideoExtension-windows-x64.zip
+          generate_release_notes: true
