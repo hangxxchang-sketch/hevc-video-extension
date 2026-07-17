@@ -19,17 +19,17 @@ int wmain() {
     return 1;
   }
 
-  IMFMediaType* input = nullptr;
-  hr = MFCreateMediaType(&input);
-  if (SUCCEEDED(hr)) hr = input->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-  if (SUCCEEDED(hr)) hr = input->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_HEVC);
+  MFT_REGISTER_TYPE_INFO inputType{
+      MFMediaType_Video,
+      MFVideoFormat_HEVC,
+  };
 
   IMFActivate** activates = nullptr;
   UINT32 count = 0;
   if (SUCCEEDED(hr)) {
     hr = MFTEnumEx(MFT_CATEGORY_VIDEO_DECODER,
                    MFT_ENUM_FLAG_ALL,
-                   input,
+                   &inputType,
                    nullptr,
                    &activates,
                    &count);
@@ -51,7 +51,6 @@ int wmain() {
     std::wcerr << L"MFTEnumEx failed: 0x" << std::hex << hr << L"\n";
   }
 
-  if (input) input->Release();
   MFShutdown();
   if (SUCCEEDED(comHr)) CoUninitialize();
   return SUCCEEDED(hr) ? 0 : 1;
