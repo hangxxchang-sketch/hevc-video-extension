@@ -101,13 +101,14 @@ BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
   return TRUE;
 }
 
-extern "C" HRESULT __declspec(dllexport) WINAPI DllCanUnloadNow() {
+#pragma comment(linker, "/EXPORT:DllCanUnloadNow")
+#pragma comment(linker, "/EXPORT:DllGetClassObject")
+
+STDAPI DllCanUnloadNow(void) {
   return (g_objectCount.load() == 0 && g_lockCount.load() == 0) ? S_OK : S_FALSE;
 }
 
-extern "C" HRESULT __declspec(dllexport) WINAPI DllGetClassObject(REFCLSID clsid,
-                                                                    REFIID riid,
-                                                                    void** object) {
+STDAPI DllGetClassObject(REFCLSID clsid, REFIID riid, LPVOID* object) {
   if (!object) {
     return E_POINTER;
   }
