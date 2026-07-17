@@ -32,7 +32,8 @@ jobs:
         run: |
           cmake --preset windows-x64 `
             -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=x64-windows
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DVCPKG_BUILD_TYPE=release
 
       - name: Build
         run: cmake --build build\x64 --config Release
