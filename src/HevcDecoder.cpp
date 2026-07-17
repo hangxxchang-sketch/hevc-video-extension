@@ -5,10 +5,12 @@
 #include <mfapi.h>
 #include <mftransform.h>
 
+extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavutil/error.h>
 #include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
+}
 
 #include <algorithm>
 #include <cstring>
