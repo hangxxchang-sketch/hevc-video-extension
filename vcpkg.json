@@ -1,0 +1,12 @@
+{
+  "name": "hevc-video-extension",
+  "version-string": "0.1.0",
+  "description": "A Windows Media Foundation HEVC decoder extension backed by FFmpeg.",
+  "dependencies": [
+    {
+      "name": "ffmpeg",
+      "default-features": false,
+      "features": ["avcodec", "swscale"]
+    }
+  ]
+}
