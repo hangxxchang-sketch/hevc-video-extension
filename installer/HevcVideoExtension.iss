@@ -27,7 +27,7 @@ Source: "{#PackageDir}\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PackageDir}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Run]
-Filename: "{sys}\regsvr32.exe"; Parameters: "/s \"{app}\bin\HevcVideoExtension.dll\""; StatusMsg: "Registering HEVC Media Foundation decoder"; Flags: runhidden waituntilterminated
+Filename: "{sys}\regsvr32.exe"; Parameters: "/s ""{app}\bin\HevcVideoExtension.dll"""; StatusMsg: "Registering HEVC Media Foundation decoder"; Flags: runhidden waituntilterminated
 
 [UninstallRun]
-Filename: "{sys}\regsvr32.exe"; Parameters: "/s /u \"{app}\bin\HevcVideoExtension.dll\""; RunOnceId: "UnregisterHEVC"; Flags: runhidden waituntilterminated
+Filename: "{sys}\regsvr32.exe"; Parameters: "/s /u ""{app}\bin\HevcVideoExtension.dll"""; RunOnceId: "UnregisterHEVC"; Flags: runhidden waituntilterminated
