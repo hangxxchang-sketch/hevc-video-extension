@@ -14,9 +14,9 @@
 #include <cstring>
 #include <new>
 
-namespace {
-
 std::atomic<long> g_objectCount{0};
+
+namespace {
 
 bool IsHevcSubtype(REFGUID subtype) {
   return subtype == MFVideoFormat_HEVC || subtype == MFVideoFormat_HEVC_ES;
