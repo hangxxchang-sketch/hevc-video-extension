@@ -56,6 +56,23 @@ jobs:
 
           Compress-Archive -Path $package -DestinationPath (Join-Path $PWD 'HevcVideoExtension-windows-x64.zip') -Force
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build one-click installer
+        shell: pwsh
+        run: |
+          $env:PACKAGE_DIR = Join-Path $env:RUNNER_TEMP 'HevcVideoExtension-windows-x64'
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) {
+            throw "Inno Setup compiler not found at $iscc"
+          }
+          & $iscc "/O$($PWD.Path)" 'installer\HevcVideoExtension.iss'
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup failed with exit code $LASTEXITCODE"
+          }
+
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
@@ -63,9 +80,18 @@ jobs:
           path: HevcVideoExtension-windows-x64.zip
           if-no-files-found: error
 
+      - name: Upload one-click installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: HevcVideoExtension-Setup-windows-x64
+          path: HevcVideoExtension-Setup-windows-x64.exe
+          if-no-files-found: error
+
       - name: Publish GitHub Release for tag
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: HevcVideoExtension-windows-x64.zip
+          files: |
+            HevcVideoExtension-windows-x64.zip
+            HevcVideoExtension-Setup-windows-x64.exe
           generate_release_notes: true
